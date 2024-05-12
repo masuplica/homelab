@@ -1,0 +1,57 @@
+version: "3"
+
+services:
+  ghost:
+    image: ghost:5.82.2-alpine
+    restart: on-failure
+    environment:
+      - database__client=mysql
+      - database__connection__host=db
+      - database__connection__user=ghost
+      - database__connection__password=portainer
+      - database__connection__database=ghost
+      - url=https://example.com
+      - mail__transport=SMTP
+      - mail__options__host=smtp.example.com
+      - mail__options__port=587
+      - mail__options__auth__user=user@example.com
+      - mail__options__auth__pass=supersavepassword
+      - mail__from=user@example.com
+    volumes:
+      - ghost-content:/var/lib/ghost/content
+    ports:
+      - "2368:2368"
+    depends_on:
+      - db 
+
+  matomo:
+    image: matomo
+    restart: always
+    ports:
+      - 8384:80
+    environment:
+      - MATOMO_DATABASE_HOST=db
+      - MATOMO_DATABASE_TABLES_PREFIX=mat_
+      - MATOMO_DATABASE_USERNAME=ghost
+      - MATOMO_DATABASE_PASSWORD=portainer
+      - MATOMO_DATABASE_DBNAME=matomo
+    volumes:
+      - matomo-content:/var/www/html
+    links:
+      - db
+
+  db:
+    image: mysql:8.0
+    restart: on-failure
+    volumes:
+      - mysql-data:/var/lib/mysql
+    environment:
+      - MYSQL_USER=ghost
+      - MYSQL_DATABASE=ghost
+      - MYSQL_PASSWORD=portainer
+      - MYSQL_ROOT_PASSWORD=portainer
+
+volumes:
+  ghost-content:
+  mysql-data:
+  matomo-content:
